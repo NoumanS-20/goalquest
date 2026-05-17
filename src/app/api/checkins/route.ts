@@ -1,18 +1,39 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireUser } from "@/lib/session";
+import { withAuth, readJson } from "@/lib/api";
 import { computeScore } from "@/lib/scoring";
 import { logAudit } from "@/lib/audit";
 
-export async function POST(req: Request) {
-  const user = await requireUser();
-  const { goalId, quarter, actualValue, actualDate, notes, progressStatus } = await req.json();
+type CheckInBody = {
+  goalId?: string;
+  quarter?: string;
+  actualValue?: string | number | null;
+  actualDate?: string | null;
+  notes?: string;
+  progressStatus?: string;
+};
+
+export const POST = withAuth(async ({ user, req }) => {
+  const body = await readJson<CheckInBody>(req);
+  if (!body) {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+  const { goalId, quarter, actualValue, actualDate, notes, progressStatus } = body;
+
+  if (!goalId || !quarter) {
+    return NextResponse.json({ error: "Missing goalId or quarter" }, { status: 400 });
+  }
 
   const goal = await prisma.goal.findUnique({ where: { id: goalId } });
   if (!goal) return NextResponse.json({ error: "Goal not found" }, { status: 404 });
-  if (goal.ownerId !== user.id) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (goal.ownerId !== user.id) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   if (goal.status !== "APPROVED" && goal.status !== "LOCKED") {
-    return NextResponse.json({ error: "Goal must be approved before check-in" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Goal must be approved before check-in" },
+      { status: 400 },
+    );
   }
 
   const val = actualValue != null && actualValue !== "" ? Number(actualValue) : null;
@@ -63,4 +84,4 @@ export async function POST(req: Request) {
   }
 
   return NextResponse.json({ ok: true, score });
-}
+});

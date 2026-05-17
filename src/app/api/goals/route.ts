@@ -1,31 +1,38 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireUser } from "@/lib/session";
+import { withAuth, readJson } from "@/lib/api";
 import { goalSchema, MAX_GOALS } from "@/lib/validation";
 import { logAudit } from "@/lib/audit";
 
-export async function POST(req: Request) {
-  const user = await requireUser();
-  const body = await req.json();
+export const POST = withAuth(async ({ user, req }) => {
+  const body = await readJson<Record<string, unknown>>(req);
+  if (!body) {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+
   const parsed = goalSchema.safeParse({
     ...body,
     target: body.target != null && body.target !== "" ? Number(body.target) : null,
     weightage: Number(body.weightage),
   });
   if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Invalid input" }, { status: 400 });
+    return NextResponse.json(
+      { error: parsed.error.issues[0]?.message ?? "Invalid input" },
+      { status: 400 },
+    );
   }
 
-  // Pick active cycle
   const cycle = await prisma.cycle.findFirst({ where: { isActive: true } });
   if (!cycle) return NextResponse.json({ error: "No active cycle" }, { status: 400 });
 
-  // Check goal count
   const existing = await prisma.goal.count({
     where: { ownerId: user.id, cycleId: cycle.id },
   });
   if (existing >= MAX_GOALS) {
-    return NextResponse.json({ error: `Max ${MAX_GOALS} goals per employee.` }, { status: 400 });
+    return NextResponse.json(
+      { error: `Max ${MAX_GOALS} goals per employee.` },
+      { status: 400 },
+    );
   }
 
   const data = parsed.data;
@@ -52,4 +59,4 @@ export async function POST(req: Request) {
   });
 
   return NextResponse.json({ ok: true, goal });
-}
+});

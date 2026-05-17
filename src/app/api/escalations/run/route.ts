@@ -1,10 +1,31 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireRole } from "@/lib/session";
+import { withRole } from "@/lib/api";
 import { currentQuarter } from "@/lib/scoring";
+import { headers } from "next/headers";
 
-export async function POST() {
-  await requireRole("ADMIN");
+/**
+ * Escalation runner.
+ *
+ * Auth: admins can trigger via UI button (cookie session).
+ * Cron: Vercel Cron hits this same route, passing the secret in the
+ *   Authorization header so we can bypass cookie auth.
+ */
+export const POST = async (req: Request): Promise<Response> => {
+  const h = await headers();
+  const cronSecret = process.env.CRON_SECRET;
+  const authHeader = h.get("authorization");
+
+  // If a valid cron secret is presented, bypass session auth
+  if (cronSecret && authHeader === `Bearer ${cronSecret}`) {
+    return runEscalations();
+  }
+
+  // Otherwise require an admin session
+  return withRole("ADMIN", async () => runEscalations())(req);
+};
+
+async function runEscalations(): Promise<Response> {
   const cycle = await prisma.cycle.findFirst({ where: { isActive: true } });
   if (!cycle) return NextResponse.json({ error: "No active cycle" }, { status: 400 });
 
@@ -18,7 +39,11 @@ export async function POST() {
       const employees = await prisma.user.findMany({ where: { role: "EMPLOYEE" } });
       for (const e of employees) {
         const submitted = await prisma.goal.count({
-          where: { ownerId: e.id, cycleId: cycle.id, status: { in: ["SUBMITTED", "APPROVED", "LOCKED"] } },
+          where: {
+            ownerId: e.id,
+            cycleId: cycle.id,
+            status: { in: ["SUBMITTED", "APPROVED", "LOCKED"] },
+          },
         });
         if (submitted === 0) {
           const exists = await prisma.escalation.findFirst({
@@ -76,7 +101,13 @@ export async function POST() {
       const hasQ = g.checkIns.some((c) => c.quarter === q);
       if (!hasQ) {
         const qOpenDate =
-          q === "Q1" ? cycle.q1Open : q === "Q2" ? cycle.q2Open : q === "Q3" ? cycle.q3Open : cycle.q4Open;
+          q === "Q1"
+            ? cycle.q1Open
+            : q === "Q2"
+              ? cycle.q2Open
+              : q === "Q3"
+                ? cycle.q3Open
+                : cycle.q4Open;
         const ageDays = (now.getTime() - qOpenDate.getTime()) / (1000 * 60 * 60 * 24);
         if (ageDays >= cycle.escCheckinDays) {
           const exists = await prisma.escalation.findFirst({
