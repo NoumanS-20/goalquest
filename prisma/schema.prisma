@@ -1,13 +1,176 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  name         String
+  password     String
+  role         String    // EMPLOYEE | MANAGER | ADMIN
+  department   String?
+  designation  String?
+  avatarUrl    String?
+
+  managerId    String?
+  manager      User?     @relation("ManagerReports", fields: [managerId], references: [id])
+  reports      User[]    @relation("ManagerReports")
+
+  goals        Goal[]    @relation("OwnerGoals")
+  sharedGoals  SharedGoal[] @relation("SharedGoalRecipient")
+  auditLogs    AuditLog[]
+  escalations  Escalation[] @relation("EscalationTarget")
+  comments     CheckInComment[]
+
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model ThrustArea {
+  id        String  @id @default(cuid())
+  name      String  @unique
+  color     String  @default("#6366f1")
+  goals     Goal[]
+}
+
+model Cycle {
+  id           String   @id @default(cuid())
+  name         String
+  startDate    DateTime
+  endDate      DateTime
+  isActive     Boolean  @default(false)
+
+  goalSetOpen  DateTime
+  q1Open       DateTime
+  q2Open       DateTime
+  q3Open       DateTime
+  q4Open       DateTime
+
+  goals        Goal[]
+
+  escSubmitDays   Int @default(7)
+  escApproveDays  Int @default(5)
+  escCheckinDays  Int @default(10)
+
+  createdAt    DateTime @default(now())
+}
+
+model Goal {
+  id            String    @id @default(cuid())
+  title         String
+  description   String?
+
+  thrustAreaId  String
+  thrustArea    ThrustArea @relation(fields: [thrustAreaId], references: [id])
+
+  uomType       String    // MIN_NUMERIC | MIN_PCT | MAX_NUMERIC | MAX_PCT | TIMELINE | ZERO
+  uomLabel      String?
+
+  target        Float?
+  deadline      DateTime?
+  weightage     Float
+
+  status        String    @default("DRAFT") // DRAFT | SUBMITTED | APPROVED | RETURNED | LOCKED
+  progressStatus String   @default("NOT_STARTED")
+
+  ownerId       String
+  owner         User      @relation("OwnerGoals", fields: [ownerId], references: [id])
+
+  cycleId       String
+  cycle         Cycle     @relation(fields: [cycleId], references: [id])
+
+  isShared      Boolean   @default(false)
+  parentGoalId  String?
+  parentGoal    Goal?     @relation("SharedGoalLink", fields: [parentGoalId], references: [id])
+  childGoals    Goal[]    @relation("SharedGoalLink")
+
+  sharedRecipients SharedGoal[]
+
+  checkIns      CheckIn[]
+  comments      CheckInComment[]
+  auditLogs     AuditLog[]
+
+  managerNote   String?
+  approvedAt    DateTime?
+  lockedAt      DateTime?
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model SharedGoal {
+  id           String  @id @default(cuid())
+  goalId       String
+  goal         Goal    @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  recipientId  String
+  recipient    User    @relation("SharedGoalRecipient", fields: [recipientId], references: [id])
+  weightage    Float
+  createdAt    DateTime @default(now())
+
+  @@unique([goalId, recipientId])
+}
+
+model CheckIn {
+  id           String   @id @default(cuid())
+  goalId       String
+  goal         Goal     @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  quarter      String
+  actualValue  Float?
+  actualDate   DateTime?
+  notes        String?
+  score        Float    @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([goalId, quarter])
+}
+
+model CheckInComment {
+  id        String   @id @default(cuid())
+  goalId    String
+  goal      Goal     @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  quarter   String
+  comment   String
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  goalId    String?
+  goal      Goal?    @relation(fields: [goalId], references: [id], onDelete: SetNull)
+  actorId   String
+  actor     User     @relation(fields: [actorId], references: [id])
+  action    String
+  field     String?
+  oldValue  String?
+  newValue  String?
+  metadata  String?
+  createdAt DateTime @default(now())
+}
+
+model Escalation {
+  id         String   @id @default(cuid())
+  ruleType   String
+  targetId   String
+  target     User     @relation("EscalationTarget", fields: [targetId], references: [id])
+  level      Int
+  message    String
+  resolved   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  resolvedAt DateTime?
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
 }
