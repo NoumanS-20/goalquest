@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 760" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif">
+  <defs>
+    <linearGradient id="brand" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fafafa"/>
+      <stop offset="100%" stop-color="#f3f4f6"/>
+    </linearGradient>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1100" height="760" fill="url(#bg)"/>
+
+  <!-- Title -->
+  <text x="550" y="44" text-anchor="middle" font-size="26" font-weight="700" fill="#0f172a">GoalQuest — System Architecture</text>
+  <text x="550" y="68" text-anchor="middle" font-size="13" fill="#64748b">AtomQuest Hackathon 1.0 · In-house Goal Setting &amp; Tracking Portal</text>
+
+  <!-- Browser / Client -->
+  <rect x="60" y="110" width="980" height="100" rx="14" fill="white" stroke="#e2e8f0" stroke-width="2"/>
+  <text x="80" y="140" font-size="13" font-weight="700" fill="url(#brand)">CLIENT</text>
+  <text x="80" y="160" font-size="11" fill="#475569">Modern browsers · React Server Components (zero hydration where possible) · Tailwind v4</text>
+  <g font-size="11" fill="#0f172a">
+    <rect x="80"  y="172" width="170" height="28" rx="6" fill="#eef2ff"/><text x="165" y="190" text-anchor="middle">Employee Portal</text>
+    <rect x="260" y="172" width="170" height="28" rx="6" fill="#eef2ff"/><text x="345" y="190" text-anchor="middle">Manager Console</text>
+    <rect x="440" y="172" width="170" height="28" rx="6" fill="#eef2ff"/><text x="525" y="190" text-anchor="middle">Admin Workspace</text>
+    <rect x="620" y="172" width="170" height="28" rx="6" fill="#eef2ff"/><text x="705" y="190" text-anchor="middle">Analytics &amp; Heatmap</text>
+    <rect x="800" y="172" width="220" height="28" rx="6" fill="#eef2ff"/><text x="910" y="190" text-anchor="middle">CSV Export / Audit Trail</text>
+  </g>
+
+  <!-- Arrow down -->
+  <line x1="550" y1="215" x2="550" y2="240" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- Edge / Vercel -->
+  <rect x="60" y="245" width="980" height="50" rx="14" fill="url(#brand)" opacity="0.95"/>
+  <text x="80" y="270" font-size="13" font-weight="700" fill="white">VERCEL EDGE NETWORK</text>
+  <text x="80" y="287" font-size="11" fill="rgba(255,255,255,0.85)">Global CDN · TLS · gzip · static asset caching · serverless function routing</text>
+
+  <line x1="550" y1="300" x2="550" y2="325" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- App Layer -->
+  <rect x="60" y="330" width="980" height="160" rx="14" fill="white" stroke="#e2e8f0" stroke-width="2"/>
+  <text x="80" y="360" font-size="13" font-weight="700" fill="url(#brand)">APPLICATION LAYER · Next.js 16 (App Router)</text>
+
+  <g>
+    <rect x="80" y="378" width="290" height="95" rx="10" fill="#f8fafc" stroke="#e2e8f0"/>
+    <text x="95" y="398" font-size="12" font-weight="600" fill="#0f172a">Server Components (RSC)</text>
+    <text x="95" y="416" font-size="10" fill="#475569">/dashboard/* — data fetching at render time</text>
+    <text x="95" y="430" font-size="10" fill="#475569">/login, /, /api/* — server-side rendering</text>
+    <text x="95" y="444" font-size="10" fill="#475569">Cookie session check on every request</text>
+    <text x="95" y="458" font-size="10" fill="#475569">No JS shipped for read-only views</text>
+  </g>
+
+  <g>
+    <rect x="385" y="378" width="290" height="95" rx="10" fill="#f8fafc" stroke="#e2e8f0"/>
+    <text x="400" y="398" font-size="12" font-weight="600" fill="#0f172a">Client Components</text>
+    <text x="400" y="416" font-size="10" fill="#475569">Forms (goal, check-in, share, approve)</text>
+    <text x="400" y="430" font-size="10" fill="#475569">Recharts (live SSR-safe charts)</text>
+    <text x="400" y="444" font-size="10" fill="#475569">Theme toggle · toast · role switcher</text>
+    <text x="400" y="458" font-size="10" fill="#475569">Optimistic UI · live score preview</text>
+  </g>
+
+  <g>
+    <rect x="690" y="378" width="330" height="95" rx="10" fill="#f8fafc" stroke="#e2e8f0"/>
+    <text x="705" y="398" font-size="12" font-weight="600" fill="#0f172a">API Routes (Serverless Functions)</text>
+    <text x="705" y="416" font-size="10" fill="#475569">/api/auth/{login,logout}</text>
+    <text x="705" y="430" font-size="10" fill="#475569">/api/goals · /api/goals/[id]/{approve,unlock}</text>
+    <text x="705" y="444" font-size="10" fill="#475569">/api/checkins · /api/comments · /api/goals/share</text>
+    <text x="705" y="458" font-size="10" fill="#475569">/api/escalations/run · /api/reports/achievement.csv</text>
+  </g>
+
+  <line x1="550" y1="495" x2="550" y2="525" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- Domain layer -->
+  <rect x="60" y="530" width="980" height="90" rx="14" fill="white" stroke="#e2e8f0" stroke-width="2"/>
+  <text x="80" y="558" font-size="13" font-weight="700" fill="url(#brand)">DOMAIN LAYER · src/lib</text>
+  <g font-size="11" fill="#0f172a">
+    <rect x="80"  y="572" width="180" height="36" rx="6" fill="#fef3c7"/><text x="170" y="595" text-anchor="middle">session.ts — cookies + DB</text>
+    <rect x="270" y="572" width="180" height="36" rx="6" fill="#dcfce7"/><text x="360" y="595" text-anchor="middle">validation.ts — Zod + rules</text>
+    <rect x="460" y="572" width="180" height="36" rx="6" fill="#dbeafe"/><text x="550" y="595" text-anchor="middle">scoring.ts — UoM formulas</text>
+    <rect x="650" y="572" width="180" height="36" rx="6" fill="#fce7f3"/><text x="740" y="595" text-anchor="middle">audit.ts — write-only log</text>
+    <rect x="840" y="572" width="180" height="36" rx="6" fill="#e0e7ff"/><text x="930" y="595" text-anchor="middle">db.ts — Prisma client</text>
+  </g>
+
+  <line x1="550" y1="625" x2="550" y2="650" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- Data layer -->
+  <rect x="60" y="655" width="980" height="80" rx="14" fill="#0f172a"/>
+  <text x="80" y="682" font-size="13" font-weight="700" fill="#a5b4fc">DATA LAYER</text>
+  <text x="80" y="700" font-size="11" fill="#cbd5e1">Prisma ORM · SQLite (dev) → Turso libSQL / Postgres (prod via env swap)</text>
+  <text x="80" y="718" font-size="10.5" fill="#94a3b8">User · Cycle · Goal · CheckIn · CheckInComment · SharedGoal · AuditLog · Escalation · Session · ThrustArea</text>
+</svg>
