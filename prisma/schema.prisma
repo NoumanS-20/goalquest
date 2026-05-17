@@ -1,10 +1,26 @@
+// =====================================================================
+// PostgreSQL schema for GoalQuest (production).
+//
+// This is the same logical model as prisma/schema.prisma (SQLite, dev),
+// but uses Postgres-native types and adds proper indexes that SQLite
+// silently ignores.
+//
+// To switch:
+//   1. Set DATABASE_URL to your Postgres connection string
+//   2. Set DIRECT_URL to the non-pooled connection string (Neon/Supabase
+//      provide both — DIRECT_URL is for migrations, DATABASE_URL is the
+//      pooled connection for the app)
+//   3. Run: npm run db:use-postgres && npm run db:migrate
+// =====================================================================
+
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -29,6 +45,9 @@ model User {
 
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
+
+  @@index([role])
+  @@index([managerId])
 }
 
 model ThrustArea {
@@ -58,6 +77,8 @@ model Cycle {
   escCheckinDays  Int @default(10)
 
   createdAt    DateTime @default(now())
+
+  @@index([isActive])
 }
 
 model Goal {
@@ -68,15 +89,15 @@ model Goal {
   thrustAreaId  String
   thrustArea    ThrustArea @relation(fields: [thrustAreaId], references: [id])
 
-  uomType       String    // MIN_NUMERIC | MIN_PCT | MAX_NUMERIC | MAX_PCT | TIMELINE | ZERO
+  uomType       String
   uomLabel      String?
 
   target        Float?
   deadline      DateTime?
   weightage     Float
 
-  status        String    @default("DRAFT") // DRAFT | SUBMITTED | APPROVED | RETURNED | LOCKED
-  progressStatus String   @default("NOT_STARTED")
+  status         String    @default("DRAFT")
+  progressStatus String    @default("NOT_STARTED")
 
   ownerId       String
   owner         User      @relation("OwnerGoals", fields: [ownerId], references: [id])
@@ -101,6 +122,12 @@ model Goal {
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+
+  // Hot-path indexes — these are the queries the dashboard hits most
+  @@index([ownerId, cycleId])
+  @@index([status, cycleId])
+  @@index([cycleId])
+  @@index([parentGoalId])
 }
 
 model SharedGoal {
@@ -113,6 +140,7 @@ model SharedGoal {
   createdAt    DateTime @default(now())
 
   @@unique([goalId, recipientId])
+  @@index([recipientId])
 }
 
 model CheckIn {
@@ -128,6 +156,7 @@ model CheckIn {
   updatedAt    DateTime @updatedAt
 
   @@unique([goalId, quarter])
+  @@index([quarter])
 }
 
 model CheckInComment {
@@ -139,6 +168,8 @@ model CheckInComment {
   quarter   String
   comment   String
   createdAt DateTime @default(now())
+
+  @@index([goalId, quarter])
 }
 
 model AuditLog {
@@ -153,6 +184,10 @@ model AuditLog {
   newValue  String?
   metadata  String?
   createdAt DateTime @default(now())
+
+  @@index([goalId, createdAt(sort: Desc)])
+  @@index([actorId, createdAt(sort: Desc)])
+  @@index([createdAt(sort: Desc)])
 }
 
 model Escalation {
@@ -165,6 +200,9 @@ model Escalation {
   resolved   Boolean  @default(false)
   createdAt  DateTime @default(now())
   resolvedAt DateTime?
+
+  @@index([resolved, createdAt(sort: Desc)])
+  @@index([targetId, resolved])
 }
 
 model Session {
@@ -173,4 +211,7 @@ model Session {
   token     String   @unique
   expiresAt DateTime
   createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
 }
