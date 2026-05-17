@@ -7,27 +7,33 @@ const ThemeCtx = React.createContext<{ theme: Theme; toggle: () => void }>({
   toggle: () => {},
 });
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = React.useState<Theme>("light");
+function readInitialTheme(): Theme {
+  if (typeof window === "undefined") return "light";
+  const stored = window.localStorage.getItem("gq-theme") as Theme | null;
+  if (stored === "light" || stored === "dark") return stored;
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
 
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  // Lazy initial state — runs only on first client render
+  const [theme, setTheme] = React.useState<Theme>(readInitialTheme);
+
+  // Sync the html.dark class. setState during effect is fine here because
+  // we're updating an external system (the DOM), not React state.
   React.useEffect(() => {
-    const stored = localStorage.getItem("gq-theme") as Theme | null;
-    const prefers = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-    const initial = stored || prefers;
-    setTheme(initial);
-    document.documentElement.classList.toggle("dark", initial === "dark");
-  }, []);
+    document.documentElement.classList.toggle("dark", theme === "dark");
+  }, [theme]);
 
   const toggle = React.useCallback(() => {
     setTheme((t) => {
-      const next = t === "light" ? "dark" : "light";
-      document.documentElement.classList.toggle("dark", next === "dark");
-      localStorage.setItem("gq-theme", next);
+      const next: Theme = t === "light" ? "dark" : "light";
+      window.localStorage.setItem("gq-theme", next);
       return next;
     });
   }, []);
 
-  return <ThemeCtx.Provider value={{ theme, toggle }}>{children}</ThemeCtx.Provider>;
+  const value = React.useMemo(() => ({ theme, toggle }), [theme, toggle]);
+  return <ThemeCtx.Provider value={value}>{children}</ThemeCtx.Provider>;
 }
 
 export const useTheme = () => React.useContext(ThemeCtx);
