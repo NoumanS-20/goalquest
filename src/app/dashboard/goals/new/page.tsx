@@ -44,7 +44,7 @@ export default async function NewGoalPage() {
           <ArrowLeft className="h-3.5 w-3.5" />
           Back to goals
         </Link>
-        <h1 className="text-3xl font-bold tracking-tight mt-2">Create a new goal</h1>
+        <h1 className="display-heading text-4xl font-bold text-slate-900 mt-2">Create a new goal</h1>
         <p className="text-muted-foreground mt-1 text-sm">
           {existing.length}/{MAX_GOALS} goals used · {remaining}% weightage remaining
         </p>

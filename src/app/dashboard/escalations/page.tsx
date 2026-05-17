@@ -23,7 +23,7 @@ export default async function EscalationsPage() {
     <div className="space-y-6 animate-fade-up">
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Escalations</h1>
+          <h1 className="display-heading text-4xl font-bold text-slate-900">Escalations</h1>
           <p className="text-muted-foreground mt-1">
             Rule-based alerts when goals or check-ins miss configured thresholds.
           </p>

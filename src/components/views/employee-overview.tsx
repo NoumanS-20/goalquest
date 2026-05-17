@@ -49,12 +49,17 @@ export async function EmployeeOverview({ userId }: { userId: string }) {
     <div className="space-y-6 animate-fade-up">
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            Hello, {me?.name.split(" ")[0]} 👋
+          <div className="chip mb-3">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            Current quarter · {q}
+          </div>
+          <h1 className="display-heading text-4xl font-bold text-slate-900">
+            Hello, {me?.name.split(" ")[0]}.
           </h1>
-          <p className="text-muted-foreground mt-1">
-            You have <strong>{goals.length}</strong> goals · <strong>{approvedGoals.length}</strong> approved
-            · current quarter is <Badge variant="brand" className="ml-1">{q}</Badge>
+          <p className="text-slate-600 mt-2 text-[15px]">
+            You have <strong className="text-slate-900">{goals.length}</strong> goals ·{" "}
+            <strong className="text-slate-900">{approvedGoals.length}</strong> approved ·{" "}
+            {totalWeight === 100 ? "weightage balanced" : `${100 - totalWeight}% unallocated`}
           </p>
         </div>
         <div className="flex gap-2">

@@ -16,7 +16,6 @@ import {
   DropdownMenuLabel,
 } from "@/components/ui/dropdown";
 import {
-  Target,
   LayoutDashboard,
   Goal,
   Users,
@@ -26,7 +25,6 @@ import {
   Moon,
   Sun,
   LogOut,
-  UserCircle,
   RefreshCcw,
   ClipboardCheck,
   FileSpreadsheet,
@@ -36,6 +34,7 @@ import {
   Menu,
   X,
 } from "lucide-react";
+import { GoalQuestMark } from "@/components/brand/goalquest-mark";
 
 type User = {
   id: string;
@@ -88,20 +87,18 @@ export function AppShell({
   }
 
   return (
-    <div className="min-h-screen flex bg-muted/30">
+    <div className="min-h-screen flex bg-canvas">
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed lg:static inset-y-0 left-0 z-40 w-64 bg-card border-r border-border flex-col transition-transform lg:translate-x-0",
+          "fixed lg:static inset-y-0 left-0 z-40 w-64 bg-white/70 backdrop-blur-xl border-r border-slate-200/60 flex-col transition-transform lg:translate-x-0",
           mobileOpen ? "flex translate-x-0" : "hidden lg:flex -translate-x-full",
         )}
       >
-        <div className="h-16 px-5 flex items-center justify-between border-b border-border">
-          <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
-            <div className="h-7 w-7 rounded-md bg-brand-gradient grid place-items-center">
-              <Target className="h-4 w-4 text-white" />
-            </div>
-            GoalQuest
+        <div className="h-16 px-5 flex items-center justify-between border-b border-slate-200/60">
+          <Link href="/dashboard" className="flex items-center gap-2.5 font-semibold tracking-tight">
+            <GoalQuestMark className="h-7 w-7" />
+            <span className="text-[15px]">GoalQuest</span>
           </Link>
           <Button size="icon" variant="ghost" className="lg:hidden" onClick={() => setMobileOpen(false)}>
             <X className="h-4 w-4" />
@@ -117,10 +114,10 @@ export function AppShell({
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
                 className={cn(
-                  "flex items-center justify-between gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                  "flex items-center justify-between gap-3 px-3 py-2 rounded-xl text-[13px] font-medium transition-all",
                   active
-                    ? "bg-brand-gradient text-white shadow-sm"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                    ? "bg-slate-900 text-white shadow-soft"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/80",
                 )}
               >
                 <span className="flex items-center gap-3">
@@ -128,25 +125,30 @@ export function AppShell({
                   {item.label}
                 </span>
                 {item.badge && pendingCount > 0 && (
-                  <Badge variant={active ? "secondary" : "danger"} className="text-[10px] px-1.5 py-0">
+                  <span className={cn(
+                    "text-[10px] font-semibold px-1.5 py-0.5 rounded-full",
+                    active ? "bg-white/20 text-white" : "bg-rose-100 text-rose-600",
+                  )}>
                     {pendingCount}
-                  </Badge>
+                  </span>
                 )}
               </Link>
             );
           })}
         </nav>
 
-        <div className="border-t border-border p-3">
+        <div className="border-t border-slate-200/60 p-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="w-full flex items-center gap-3 p-2 rounded-md hover:bg-muted transition-colors text-left">
-                <Avatar>
-                  <AvatarFallback>{initials(user.name)}</AvatarFallback>
+              <button className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-slate-100/80 transition-colors text-left">
+                <Avatar className="ring-2 ring-white shadow-soft">
+                  <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-purple-500 text-white text-xs font-semibold">
+                    {initials(user.name)}
+                  </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium truncate">{user.name}</div>
-                  <div className="text-xs text-muted-foreground capitalize">
+                  <div className="text-[13px] font-medium truncate text-slate-900">{user.name}</div>
+                  <div className="text-[11px] text-slate-500 capitalize">
                     {user.role.toLowerCase()}
                   </div>
                 </div>
@@ -158,7 +160,7 @@ export function AppShell({
                 <DropdownMenuItem
                   key={a.id}
                   onClick={() => switchUser(a.email)}
-                  className={cn(a.id === user.id && "bg-muted")}
+                  className={cn(a.id === user.id && "bg-slate-100")}
                 >
                   <Avatar className="h-6 w-6 mr-2">
                     <AvatarFallback className="text-[10px]">{initials(a.name)}</AvatarFallback>
@@ -184,25 +186,30 @@ export function AppShell({
 
       {/* Main */}
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="h-16 px-4 lg:px-8 flex items-center justify-between bg-card/60 backdrop-blur border-b border-border sticky top-0 z-30">
+        <header className="h-16 px-4 lg:px-8 flex items-center justify-between bg-white/70 backdrop-blur-xl border-b border-slate-200/60 sticky top-0 z-30">
           <Button size="icon" variant="ghost" className="lg:hidden" onClick={() => setMobileOpen(true)}>
             <Menu className="h-5 w-5" />
           </Button>
-          <div className="text-sm text-muted-foreground hidden lg:block">
-            <span className="font-mono">FY 2026-27</span> · Goal Cycle Active
+          <div className="hidden lg:flex items-center gap-3">
+            <span className="chip">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              FY 2026-27 · Cycle active
+            </span>
           </div>
-          <div className="flex items-center gap-2">
-            <Button size="icon" variant="ghost" onClick={toggle}>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={toggle}
+              className="h-9 w-9 grid place-items-center rounded-full hover:bg-slate-100 transition-colors text-slate-600"
+              aria-label="Toggle theme"
+            >
               {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </Button>
-            <Button size="icon" variant="ghost" className="relative">
+            </button>
+            <button className="h-9 w-9 grid place-items-center rounded-full hover:bg-slate-100 transition-colors text-slate-600 relative">
               <Bell className="h-4 w-4" />
               {pendingCount > 0 && (
-                <span className="absolute -top-1 -right-1 h-4 w-4 text-[9px] font-bold rounded-full bg-rose-500 text-white grid place-items-center">
-                  {pendingCount}
-                </span>
+                <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white" />
               )}
-            </Button>
+            </button>
           </div>
         </header>
 

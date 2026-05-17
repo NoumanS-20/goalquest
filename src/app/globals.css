@@ -133,3 +133,87 @@ body {
 .animate-pulse-ring {
   animation: pulseRing 1.5s infinite;
 }
+
+/* === Apple-style landing utilities === */
+
+/* Soft canvas background — pure white with subtle warmth */
+.bg-canvas {
+  background:
+    radial-gradient(1200px 600px at 50% -10%, hsl(220 60% 97%) 0%, transparent 60%),
+    radial-gradient(800px 500px at 10% 30%, hsl(280 60% 98%) 0%, transparent 60%),
+    radial-gradient(900px 500px at 90% 20%, hsl(200 70% 98%) 0%, transparent 60%),
+    #ffffff;
+}
+
+/* Crisp dotted paper texture (very subtle) */
+.bg-paper {
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(15, 23, 42, 0.045) 1px, transparent 0);
+  background-size: 22px 22px;
+}
+
+/* Soft layered shadow — neumorphic but elegant */
+.shadow-soft {
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 8px 24px -8px rgba(15, 23, 42, 0.08),
+    0 24px 48px -16px rgba(15, 23, 42, 0.10);
+}
+.shadow-soft-lg {
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.05),
+    0 12px 32px -8px rgba(15, 23, 42, 0.10),
+    0 40px 80px -24px rgba(15, 23, 42, 0.18);
+}
+
+/* Premium glass card */
+.glass-card {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+}
+
+/* Floating animation for hero cards */
+@keyframes floatY {
+  0%, 100% { transform: translateY(0) rotate(var(--tilt, 0deg)); }
+  50% { transform: translateY(-8px) rotate(var(--tilt, 0deg)); }
+}
+.animate-float { animation: floatY 6s ease-in-out infinite; }
+.animate-float-slow { animation: floatY 8s ease-in-out infinite; }
+.animate-float-fast { animation: floatY 5s ease-in-out infinite; }
+
+/* Subtle rotation on 3D mark */
+@keyframes spinSlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-spin-slow { animation: spinSlow 30s linear infinite; }
+
+/* Marquee for trust strip */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.animate-marquee { animation: marquee 40s linear infinite; }
+
+/* Apple-style display heading */
+.display-heading {
+  font-feature-settings: "ss01", "cv11";
+  letter-spacing: -0.04em;
+  line-height: 0.95;
+}
+
+/* Tag chip */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.04);
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  font-size: 12px;
+  font-weight: 500;
+  color: hsl(var(--muted-fg));
+}

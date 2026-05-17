@@ -53,10 +53,17 @@ export async function AdminOverview() {
     <div className="space-y-6 animate-fade-up">
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Admin Overview</h1>
-          <p className="text-muted-foreground mt-1">
-            Active cycle: <strong>{cycle?.name ?? "—"}</strong> · Quarter:{" "}
-            <Badge variant="brand">{q}</Badge>
+          <div className="chip mb-3">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            {cycle?.name ?? "No active cycle"} · {q}
+          </div>
+          <h1 className="display-heading text-4xl font-bold text-slate-900">
+            Admin overview.
+          </h1>
+          <p className="text-slate-600 mt-2 text-[15px]">
+            <strong className="text-slate-900">{userCount}</strong> people ·{" "}
+            <strong className="text-slate-900">{goalCount}</strong> goals ·{" "}
+            <strong className="text-slate-900">{escalations}</strong> open escalations
           </p>
         </div>
         <div className="flex gap-2">

@@ -16,7 +16,7 @@ export default async function CyclesPage() {
   return (
     <div className="space-y-6 animate-fade-up">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Goal Cycles</h1>
+        <h1 className="display-heading text-4xl font-bold text-slate-900">Goal Cycles</h1>
         <p className="text-muted-foreground mt-1">
           Configure cycle dates and quarterly windows.
         </p>

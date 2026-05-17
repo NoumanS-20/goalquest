@@ -24,7 +24,7 @@ export default async function CheckinsPage() {
   return (
     <div className="space-y-6 animate-fade-up">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Quarterly Check-ins</h1>
+        <h1 className="display-heading text-4xl font-bold text-slate-900">Quarterly Check-ins</h1>
         <p className="text-muted-foreground mt-1">
           Log actual achievement against planned targets. Current quarter:{" "}
           <Badge variant="brand">{q}</Badge>

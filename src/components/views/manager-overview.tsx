@@ -40,10 +40,16 @@ export async function ManagerOverview({ userId }: { userId: string }) {
     <div className="space-y-6 animate-fade-up">
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Hello, {me?.name.split(" ")[0]} 👋</h1>
-          <p className="text-muted-foreground mt-1">
-            Managing <strong>{team.length}</strong> direct reports · current quarter is{" "}
-            <Badge variant="brand" className="ml-1">{q}</Badge>
+          <div className="chip mb-3">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            Current quarter · {q}
+          </div>
+          <h1 className="display-heading text-4xl font-bold text-slate-900">
+            Hello, {me?.name.split(" ")[0]}.
+          </h1>
+          <p className="text-slate-600 mt-2 text-[15px]">
+            Managing <strong className="text-slate-900">{team.length}</strong> direct reports ·{" "}
+            <strong className="text-slate-900">{pendingApprovals}</strong> awaiting approval
           </p>
         </div>
         <Button asChild variant="brand">

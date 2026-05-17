@@ -24,7 +24,7 @@ export default async function OrgPage() {
   return (
     <div className="space-y-6 animate-fade-up">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Organization</h1>
+        <h1 className="display-heading text-4xl font-bold text-slate-900">Organization</h1>
         <p className="text-muted-foreground mt-1">
           <Users className="h-4 w-4 inline mr-1" />
           {users.length} users across {Object.keys(byDept).length} departments

@@ -26,7 +26,7 @@ export default async function ReportsPage() {
     <div className="space-y-6 animate-fade-up">
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Reports</h1>
+          <h1 className="display-heading text-4xl font-bold text-slate-900">Reports</h1>
           <p className="text-muted-foreground mt-1">
             <FileSpreadsheet className="h-4 w-4 inline mr-1" />
             Achievement Report &amp; Completion Dashboard — exportable.

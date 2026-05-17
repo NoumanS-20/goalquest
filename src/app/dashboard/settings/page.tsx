@@ -20,7 +20,7 @@ export default async function SettingsPage() {
   return (
     <div className="space-y-6 animate-fade-up">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
+        <h1 className="display-heading text-4xl font-bold text-slate-900">Settings</h1>
         <p className="text-muted-foreground mt-1">
           <Settings className="h-4 w-4 inline mr-1" />
           Admin-level overrides and configuration.

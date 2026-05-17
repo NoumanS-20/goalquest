@@ -31,7 +31,7 @@ export default async function AuditPage() {
   return (
     <div className="space-y-6 animate-fade-up">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Audit Trail</h1>
+        <h1 className="display-heading text-4xl font-bold text-slate-900">Audit Trail</h1>
         <p className="text-muted-foreground mt-1">
           <History className="h-4 w-4 inline mr-1" />
           Every change to a goal — including post-lock edits — is captured here.

@@ -28,7 +28,7 @@ export default async function TeamPage() {
     <div className="space-y-6 animate-fade-up">
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">My Team</h1>
+          <h1 className="display-heading text-4xl font-bold text-slate-900">My Team</h1>
           <p className="text-muted-foreground mt-1">
             <Users className="h-4 w-4 inline mr-1" />
             {team.length} direct reports · current quarter <Badge variant="brand">{q}</Badge>

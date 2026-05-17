@@ -43,7 +43,7 @@ export default async function TeamMemberPage({ params }: { params: Promise<{ id:
             <AvatarFallback className="text-base">{initials(member.name)}</AvatarFallback>
           </Avatar>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">{member.name}</h1>
+            <h1 className="display-heading text-4xl font-bold text-slate-900">{member.name}</h1>
             <p className="text-muted-foreground text-sm">
               {member.designation} · {member.department} · {member.goals.length}/8 goals · Weight{" "}
               <strong className={totalWeight === 100 ? "text-emerald-600" : "text-amber-600"}>

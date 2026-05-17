@@ -87,7 +87,7 @@ export default async function AnalyticsPage() {
   return (
     <div className="space-y-6 animate-fade-up">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Analytics</h1>
+        <h1 className="display-heading text-4xl font-bold text-slate-900">Analytics</h1>
         <p className="text-muted-foreground mt-1">
           {user.role === "ADMIN" ? "Organisation-wide" : "Team-level"} performance & coverage signals.
         </p>

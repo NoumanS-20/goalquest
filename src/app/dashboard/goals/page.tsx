@@ -29,7 +29,7 @@ export default async function GoalsPage() {
     <div className="space-y-6 animate-fade-up">
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">My Goal Sheet</h1>
+          <h1 className="display-heading text-4xl font-bold text-slate-900">My Goal Sheet</h1>
           <p className="text-muted-foreground mt-1">
             {cycle?.name} · {goals.length}/{MAX_GOALS} goals · Total weight{" "}
             <strong className={totalWeight === 100 ? "text-emerald-600" : "text-amber-600"}>
