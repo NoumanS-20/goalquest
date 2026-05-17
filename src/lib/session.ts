@@ -37,7 +37,6 @@ export async function getCurrentUser() {
   if (!token) return null;
   const session = await prisma.session.findUnique({
     where: { token },
-    include: { },
   });
   if (!session) return null;
   if (session.expiresAt < new Date()) {
