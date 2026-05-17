@@ -9,9 +9,10 @@
 
 | Item                | Link                                                                |
 | ------------------- | ------------------------------------------------------------------- |
-| **Live URL**        | _(deploy to Vercel — instructions below)_                           |
-| **Source code**     | This repository                                                     |
+| **Live URL**        | **https://goalquest-theta.vercel.app**                              |
+| **Source code**     | https://github.com/NoumanS-20/goalquest                             |
 | **Architecture**    | [`/docs/architecture.svg`](./docs/architecture.svg)                 |
+| **Runbook**         | [`RUNBOOK.md`](./RUNBOOK.md) — ops procedures, backups, incidents   |
 | **Demo accounts**   | Password for all is `demo1234` · one-click switch in the login page |
 
 | Role     | Email                  | Highlights                                                |
@@ -52,12 +53,24 @@
 - ✓ **Audit Trail** — every change (CREATE / UPDATE / APPROVE / RETURN / LOCK / UNLOCK / CHECKIN / DELETE) captured with actor, field, old → new value, timestamp
 
 ### Bonus (Section 5)
-- ✓ **Analytics Module** — QoQ trend line, status breakdown, thrust-area pie, UoM mix, completion heatmap, manager-effectiveness scoreboard
-- ✓ **Rule-based Escalations** — configurable thresholds for submit/approve/check-in delays; auto-creates alerts, one-click resolve
+**Done:**
+- ✓ **5.3 Rule-based Escalations** — configurable day-thresholds for submit/approve/check-in delays; auto-creates alerts; one-click resolve; runs daily on Vercel Cron
+- ✓ **5.4 Analytics Module** — QoQ trend line, status breakdown, thrust-area pie, UoM mix, completion heatmap, manager-effectiveness scoreboard
 - ✓ Cycle configuration (Phase 1 open + Q1–Q4 windows + escalation day-thresholds)
 - ✓ Polished light/dark theme with brand gradient and animations
 - ✓ One-click role switcher for fast demo evaluation
 - ✓ Empty states, optimistic toasts, accessible form errors
+
+**Documented as future work (require customer-supplied infrastructure):**
+- ☐ **5.1 Microsoft Entra ID SSO** — code path designed for NextAuth + Azure AD provider; requires the customer to provide their tenant ID, client ID, and a registered redirect URI. NextAuth and `@auth/prisma-adapter` are already in `package.json`; env-var stubs are in `.env.example` (`AZURE_AD_CLIENT_ID`, `AZURE_AD_TENANT_ID`, `AZURE_AD_CLIENT_SECRET`, `NEXTAUTH_SECRET`).
+- ☐ **5.2 Email & Teams notifications** — requires a verified sending domain (Resend) and a Teams app registration. Resend env stubs are in `.env.example` (`RESEND_API_KEY`, `RESEND_FROM_EMAIL`). Escalation runner already creates the records that would trigger these notifications.
+
+### Production-grade hardening (beyond BRD)
+- ✓ **Security:** argon2id passwords, RBAC at API layer (`withRole` middleware), 7 security headers (CSP, HSTS, X-Frame-Options DENY, etc.), Origin-checked CSRF in middleware, per-request UUIDs, IP rate-limiting on `/api/auth/login`
+- ✓ **Reliability:** Postgres (Neon) with hot-path indexes; `/api/health` with DB connectivity check; structured JSON logger; Sentry instrumentation hooks (no-op when DSN unset)
+- ✓ **SEO:** sitemap.xml, robots.txt, web manifest, dynamic OG image generator at `/api/og`, JSON-LD structured data, generated favicons
+- ✓ **Public surface:** `/pricing`, `/security`, `/about`, `/privacy`, `/terms`
+- ✓ **DevOps:** GitHub Actions CI (lint, typecheck, 34 unit tests, build, security audit), Dependabot weekly; `RUNBOOK.md` with deploy/backup/incident procedures
 
 ---
 
