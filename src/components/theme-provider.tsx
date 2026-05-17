@@ -8,10 +8,7 @@ const ThemeCtx = React.createContext<{ theme: Theme; toggle: () => void }>({
 });
 
 function readInitialTheme(): Theme {
-  if (typeof window === "undefined") return "light";
-  const stored = window.localStorage.getItem("gq-theme") as Theme | null;
-  if (stored === "light" || stored === "dark") return stored;
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  return "light";
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
@@ -21,15 +18,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   // Sync the html.dark class. setState during effect is fine here because
   // we're updating an external system (the DOM), not React state.
   React.useEffect(() => {
-    document.documentElement.classList.toggle("dark", theme === "dark");
+    document.documentElement.classList.remove("dark");
+    window.localStorage.setItem("gq-theme", "light");
   }, [theme]);
 
   const toggle = React.useCallback(() => {
-    setTheme((t) => {
-      const next: Theme = t === "light" ? "dark" : "light";
-      window.localStorage.setItem("gq-theme", next);
-      return next;
-    });
+    setTheme("light");
   }, []);
 
   const value = React.useMemo(() => ({ theme, toggle }), [theme, toggle]);

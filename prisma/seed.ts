@@ -34,7 +34,7 @@ async function main() {
   );
 
   // Users
-  const admin = await prisma.user.create({
+  const _admin = await prisma.user.create({
     data: {
       email: "admin@atomberg.com",
       name: "Aanya Sharma",
@@ -165,7 +165,7 @@ async function main() {
       lockedAt: new Date("2026-05-10"),
     },
   });
-  const kg3 = await prisma.goal.create({
+  const _kg3 = await prisma.goal.create({
     data: {
       title: "Launch loyalty programme in West region",
       description: "Programme live across 200+ dealers by 30-Sep.",

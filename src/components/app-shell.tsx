@@ -3,7 +3,6 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn, initials } from "@/lib/utils";
-import { useTheme } from "@/components/theme-provider";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,8 +21,6 @@ import {
   Settings,
   BarChart3,
   Bell,
-  Moon,
-  Sun,
   LogOut,
   RefreshCcw,
   ClipboardCheck,
@@ -65,7 +62,6 @@ export function AppShell({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { theme, toggle } = useTheme();
   const [mobileOpen, setMobileOpen] = React.useState(false);
 
   const nav = navFor(user.role);
@@ -114,7 +110,7 @@ export function AppShell({
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
                 className={cn(
-                  "flex items-center justify-between gap-3 px-3 py-2 rounded-xl text-[13px] font-medium transition-all",
+                  "flex items-center justify-between gap-3 px-3 py-2 rounded-md text-[13px] font-medium transition-all",
                   active
                     ? "bg-slate-900 text-white shadow-soft"
                     : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/80",
@@ -126,7 +122,7 @@ export function AppShell({
                 </span>
                 {item.badge && pendingCount > 0 && (
                   <span className={cn(
-                    "text-[10px] font-semibold px-1.5 py-0.5 rounded-full",
+                    "text-[10px] font-semibold px-1.5 py-0.5 rounded-md",
                     active ? "bg-white/20 text-white" : "bg-rose-100 text-rose-600",
                   )}>
                     {pendingCount}
@@ -140,7 +136,7 @@ export function AppShell({
         <div className="border-t border-slate-200/60 p-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-slate-100/80 transition-colors text-left">
+              <button className="w-full flex items-center gap-3 p-2 rounded-md hover:bg-slate-100/80 transition-colors text-left">
                 <Avatar className="ring-2 ring-white shadow-soft">
                   <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-purple-500 text-white text-xs font-semibold">
                     {initials(user.name)}
@@ -197,13 +193,6 @@ export function AppShell({
             </span>
           </div>
           <div className="flex items-center gap-1">
-            <button
-              onClick={toggle}
-              className="h-9 w-9 grid place-items-center rounded-full hover:bg-slate-100 transition-colors text-slate-600"
-              aria-label="Toggle theme"
-            >
-              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </button>
             <button className="h-9 w-9 grid place-items-center rounded-full hover:bg-slate-100 transition-colors text-slate-600 relative">
               <Bell className="h-4 w-4" />
               {pendingCount > 0 && (

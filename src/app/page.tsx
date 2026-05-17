@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
-import { Button } from "@/components/ui/button";
 import { getCurrentUser } from "@/lib/session";
 import { buildMetadata, buildOrganizationJsonLd, buildFAQJsonLd } from "@/lib/seo";
 import {

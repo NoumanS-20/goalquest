@@ -4,25 +4,25 @@ import { requireUser } from "@/lib/session";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { initials } from "@/lib/utils";
-import { currentQuarter } from "@/lib/scoring";
-import { Users, ChevronRight, Share2, Clock, CheckCircle2, AlertCircle } from "lucide-react";
+import { currentQuarterForCycle } from "@/lib/scoring";
+import { Users, ChevronRight, Clock, CheckCircle2, AlertCircle } from "lucide-react";
 import { ShareGoalButton } from "@/components/share-goal-button";
 
 export default async function TeamPage() {
   const user = await requireUser();
   if (user.role !== "MANAGER" && user.role !== "ADMIN") return null;
 
+  const cycle = await prisma.cycle.findFirst({ where: { isActive: true } });
   const team = await prisma.user.findMany({
     where: { managerId: user.id },
     include: {
-      goals: { include: { checkIns: true } },
+      goals: { where: { cycleId: cycle?.id }, include: { checkIns: true } },
     },
   });
 
-  const q = currentQuarter()!;
+  const q = currentQuarterForCycle(cycle);
 
   return (
     <div className="space-y-6 animate-fade-up">
@@ -31,7 +31,8 @@ export default async function TeamPage() {
           <h1 className="display-heading text-4xl font-bold text-slate-900">My Team</h1>
           <p className="text-muted-foreground mt-1">
             <Users className="h-4 w-4 inline mr-1" />
-            {team.length} direct reports · current quarter <Badge variant="brand">{q}</Badge>
+            {team.length} direct reports · check-in window{" "}
+            <Badge variant={q ? "brand" : "secondary"}>{q ?? "Not open"}</Badge>
           </p>
         </div>
         <ShareGoalButton team={team.map((t) => ({ id: t.id, name: t.name }))} />
@@ -52,7 +53,7 @@ export default async function TeamPage() {
             const submitted = t.goals.filter((g) => g.status === "SUBMITTED").length;
             const approved = t.goals.filter((g) => g.status === "APPROVED" || g.status === "LOCKED").length;
             const draftCount = t.goals.filter((g) => g.status === "DRAFT").length;
-            const qDone = t.goals.filter((g) => g.checkIns.some((c) => c.quarter === q)).length;
+            const qDone = q ? t.goals.filter((g) => g.checkIns.some((c) => c.quarter === q)).length : 0;
             const totalWeight = t.goals.reduce((s, g) => s + g.weightage, 0);
             return (
               <Link
@@ -82,7 +83,9 @@ export default async function TeamPage() {
                   )}
                 </div>
                 <div className="w-32 hidden lg:block">
-                  <div className="text-[10px] text-muted-foreground mb-1">{q} check-in</div>
+                  <div className="text-[10px] text-muted-foreground mb-1">
+                    {q ? `${q} check-in` : "Check-ins"}
+                  </div>
                   <Progress value={approved > 0 ? (qDone / approved) * 100 : 0} />
                 </div>
                 <ChevronRight className="h-4 w-4 text-muted-foreground" />

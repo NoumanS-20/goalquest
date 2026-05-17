@@ -6,7 +6,10 @@ import { logAudit } from "@/lib/audit";
 
 export const PATCH = withAuth<{ id: string }>(async ({ user, req, params }) => {
   const { id } = params;
-  const goal = await prisma.goal.findUnique({ where: { id } });
+  const goal = await prisma.goal.findUnique({
+    where: { id },
+    include: { cycle: true },
+  });
   if (!goal) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const isOwner = goal.ownerId === user.id;
@@ -17,13 +20,6 @@ export const PATCH = withAuth<{ id: string }>(async ({ user, req, params }) => {
 
   if (!isOwner && !isManagerOfOwner && !isAdmin) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-
-  if (isOwner && !isAdmin && !["DRAFT", "RETURNED"].includes(goal.status)) {
-    return NextResponse.json(
-      { error: "Goal is locked. Ask Admin to unlock." },
-      { status: 400 },
-    );
   }
 
   const body = await readJson<Record<string, unknown>>(req);
@@ -44,12 +40,25 @@ export const PATCH = withAuth<{ id: string }>(async ({ user, req, params }) => {
   }
 
   const data = parsed.data;
+  const requestedFields = Object.keys(data).filter(
+    (key) => data[key as keyof typeof data] !== undefined,
+  );
 
   // Shared-goal recipients can only edit their own weightage
-  if (goal.isShared && goal.parentGoalId && isOwner) {
-    const onlyW: Partial<typeof data> = {};
-    if (data.weightage != null) onlyW.weightage = data.weightage;
-    await prisma.goal.update({ where: { id }, data: onlyW });
+  if (goal.isShared && goal.parentGoalId && isOwner && !isAdmin) {
+    if (requestedFields.some((field) => field !== "weightage") || data.weightage == null) {
+      return NextResponse.json(
+        { error: "Shared goal recipients can only adjust weightage." },
+        { status: 400 },
+      );
+    }
+    await prisma.$transaction([
+      prisma.goal.update({ where: { id }, data: { weightage: data.weightage } }),
+      prisma.sharedGoal.updateMany({
+        where: { goalId: goal.parentGoalId, recipientId: user.id },
+        data: { weightage: data.weightage },
+      }),
+    ]);
     await logAudit({
       actorId: user.id,
       goalId: id,
@@ -61,7 +70,26 @@ export const PATCH = withAuth<{ id: string }>(async ({ user, req, params }) => {
     return NextResponse.json({ ok: true });
   }
 
-  const fieldsToCheck = ["title", "description", "weightage", "target", "uomType", "uomLabel"] as const;
+  if (isOwner && !isAdmin && !["DRAFT", "RETURNED"].includes(goal.status)) {
+    return NextResponse.json(
+      { error: "Goal is locked. Ask Admin to unlock." },
+      { status: 400 },
+    );
+  }
+  if (isManagerOfOwner && !isAdmin && goal.status !== "SUBMITTED") {
+    return NextResponse.json(
+      { error: "Managers can edit only submitted goals during approval." },
+      { status: 400 },
+    );
+  }
+  if (new Date() < goal.cycle.goalSetOpen) {
+    return NextResponse.json(
+      { error: `Goal setting opens on ${goal.cycle.goalSetOpen.toLocaleDateString("en-IN")}.` },
+      { status: 400 },
+    );
+  }
+
+  const fieldsToCheck = ["title", "description", "weightage", "target", "uomType", "uomLabel", "deadline"] as const;
   for (const f of fieldsToCheck) {
     if (data[f] != null && data[f] !== (goal as Record<string, unknown>)[f]) {
       await logAudit({

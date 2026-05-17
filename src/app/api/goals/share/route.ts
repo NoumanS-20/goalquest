@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { withRole, readJson } from "@/lib/api";
 import { logAudit } from "@/lib/audit";
+import { MAX_GOALS, MIN_WEIGHTAGE } from "@/lib/validation";
 
 type ShareBody = {
   title?: string;
@@ -21,6 +22,13 @@ export const POST = withRole(["MANAGER", "ADMIN"], async ({ user, req }) => {
 
   if (!title || !Array.isArray(recipientIds) || recipientIds.length === 0) {
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+  }
+  const defaultWeight = Number(weightage ?? 20);
+  if (!Number.isFinite(defaultWeight) || defaultWeight < MIN_WEIGHTAGE || defaultWeight > 100) {
+    return NextResponse.json(
+      { error: `Default weightage must be between ${MIN_WEIGHTAGE}% and 100%.` },
+      { status: 400 },
+    );
   }
 
   const cycle = await prisma.cycle.findFirst({ where: { isActive: true } });
@@ -46,6 +54,20 @@ export const POST = withRole(["MANAGER", "ADMIN"], async ({ user, req }) => {
     }
   }
 
+  const goalCounts = await prisma.goal.groupBy({
+    by: ["ownerId"],
+    where: { ownerId: { in: recipientIds }, cycleId: cycle.id },
+    _count: { _all: true },
+  });
+  const fullRecipient = goalCounts.find((row) => row._count._all >= MAX_GOALS);
+  if (fullRecipient) {
+    const recipient = await prisma.user.findUnique({ where: { id: fullRecipient.ownerId } });
+    return NextResponse.json(
+      { error: `${recipient?.name ?? "A recipient"} already has ${MAX_GOALS} goals.` },
+      { status: 400 },
+    );
+  }
+
   const parent = await prisma.goal.create({
     data: {
       title,
@@ -54,7 +76,7 @@ export const POST = withRole(["MANAGER", "ADMIN"], async ({ user, req }) => {
       uomType: "MIN_NUMERIC",
       uomLabel: uomLabel || null,
       target: target ?? null,
-      weightage: weightage ?? 20,
+      weightage: defaultWeight,
       status: "APPROVED",
       progressStatus: "ON_TRACK",
       ownerId: user.id,
@@ -74,7 +96,7 @@ export const POST = withRole(["MANAGER", "ADMIN"], async ({ user, req }) => {
         uomType: "MIN_NUMERIC",
         uomLabel: uomLabel || null,
         target: target ?? null,
-        weightage: weightage ?? 20,
+        weightage: defaultWeight,
         status: "APPROVED",
         progressStatus: "ON_TRACK",
         ownerId: rid,
@@ -86,7 +108,7 @@ export const POST = withRole(["MANAGER", "ADMIN"], async ({ user, req }) => {
       },
     });
     await prisma.sharedGoal.create({
-      data: { goalId: parent.id, recipientId: rid, weightage: weightage ?? 20 },
+      data: { goalId: parent.id, recipientId: rid, weightage: defaultWeight },
     });
     await logAudit({
       actorId: user.id,

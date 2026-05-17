@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { formatDate } from "@/lib/utils";
 import { UOM_SHORT } from "@/lib/scoring";
@@ -15,6 +16,7 @@ import {
   CheckCircle2,
   AlertTriangle,
   Lock,
+  Save,
   Share2,
 } from "lucide-react";
 
@@ -30,6 +32,7 @@ type Goal = {
   status: string;
   managerNote: string | null;
   isShared: boolean;
+  parentGoalId: string | null;
   thrustArea: { name: string; color: string };
   checkIns: { score: number; quarter: string; createdAt: Date }[];
 };
@@ -37,8 +40,11 @@ type Goal = {
 export function GoalRow({ goal, readOnly }: { goal: Goal; readOnly?: boolean }) {
   const router = useRouter();
   const [deleting, setDeleting] = React.useState(false);
+  const [savingSharedWeight, setSavingSharedWeight] = React.useState(false);
+  const [sharedWeight, setSharedWeight] = React.useState(goal.weightage.toString());
   const latest = [...goal.checkIns].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
   const locked = goal.status === "APPROVED" || goal.status === "LOCKED";
+  const canAdjustSharedWeight = Boolean(goal.isShared && goal.parentGoalId && !readOnly);
 
   async function del() {
     if (!confirm(`Delete "${goal.title}"?`)) return;
@@ -52,6 +58,29 @@ export function GoalRow({ goal, readOnly }: { goal: Goal; readOnly?: boolean }) 
       router.refresh();
     }
     setDeleting(false);
+  }
+
+  async function saveSharedWeight() {
+    const nextWeight = Number(sharedWeight);
+    if (!Number.isFinite(nextWeight) || nextWeight < 10 || nextWeight > 100) {
+      toast.error("Shared goal weightage must be between 10% and 100%.");
+      return;
+    }
+
+    setSavingSharedWeight(true);
+    const res = await fetch(`/api/goals/${goal.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ weightage: nextWeight }),
+    });
+    const j = await res.json();
+    if (!res.ok) {
+      toast.error(j.error || "Unable to update shared goal weightage");
+    } else {
+      toast.success("Shared goal weightage updated");
+      router.refresh();
+    }
+    setSavingSharedWeight(false);
   }
 
   return (
@@ -115,7 +144,31 @@ export function GoalRow({ goal, readOnly }: { goal: Goal; readOnly?: boolean }) 
 
       {!readOnly && (
         <div className="flex md:flex-col gap-1.5">
-          {!locked && (
+          {canAdjustSharedWeight && (
+            <div className="flex gap-1.5 md:w-36">
+              <Input
+                aria-label="Shared goal weightage"
+                className="h-8 w-20"
+                type="number"
+                min={10}
+                max={100}
+                step="1"
+                value={sharedWeight}
+                onChange={(e) => setSharedWeight(e.target.value)}
+              />
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={saveSharedWeight}
+                disabled={savingSharedWeight}
+                title="Save shared goal weightage"
+              >
+                <Save className="h-3.5 w-3.5" />
+                <span className="sr-only">Save weightage</span>
+              </Button>
+            </div>
+          )}
+          {!locked && !canAdjustSharedWeight && (
             <>
               <Button asChild size="sm" variant="outline">
                 <Link href={`/dashboard/goals/${goal.id}`}>
@@ -128,7 +181,7 @@ export function GoalRow({ goal, readOnly }: { goal: Goal; readOnly?: boolean }) 
               </Button>
             </>
           )}
-          {locked && (
+          {locked && !canAdjustSharedWeight && (
             <Button size="sm" variant="outline" disabled className="cursor-not-allowed">
               <Lock className="h-3.5 w-3.5" />
               Locked

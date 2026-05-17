@@ -60,11 +60,55 @@ export const UOM_SHORT: Record<string, string> = {
 export const QUARTERS = ["Q1", "Q2", "Q3", "Q4"] as const;
 export type Quarter = (typeof QUARTERS)[number];
 
+export type CycleWindows = {
+  q1Open: Date | string;
+  q2Open: Date | string;
+  q3Open: Date | string;
+  q4Open: Date | string;
+  endDate?: Date | string | null;
+};
+
+export function quarterOpenDate(cycle: CycleWindows, quarter: Quarter): Date {
+  const value = {
+    Q1: cycle.q1Open,
+    Q2: cycle.q2Open,
+    Q3: cycle.q3Open,
+    Q4: cycle.q4Open,
+  }[quarter];
+  return value instanceof Date ? value : new Date(value);
+}
+
+export function openedQuarters(cycle: CycleWindows | null | undefined, date = new Date()): Quarter[] {
+  if (!cycle) return [];
+  const end = cycle.endDate ? (cycle.endDate instanceof Date ? cycle.endDate : new Date(cycle.endDate)) : null;
+  if (end && date > end) return [...QUARTERS];
+  return QUARTERS.filter((quarter) => date >= quarterOpenDate(cycle, quarter));
+}
+
+export function currentQuarterForCycle(
+  cycle: CycleWindows | null | undefined,
+  date = new Date(),
+): Quarter | null {
+  const opened = openedQuarters(cycle, date);
+  return opened.at(-1) ?? null;
+}
+
+export function isQuarterOpen(
+  cycle: CycleWindows | null | undefined,
+  quarter: string,
+  date = new Date(),
+): quarter is Quarter {
+  if (!QUARTERS.includes(quarter as Quarter)) return false;
+  return openedQuarters(cycle, date).includes(quarter as Quarter);
+}
+
 export function currentQuarter(date = new Date()): Quarter | null {
   const m = date.getMonth(); // 0-11
-  // BRD: Q1 opens July, Q2 Oct, Q3 Jan, Q4 Mar/Apr
+  // BRD default windows without cycle config:
+  // Q1 opens July, Q2 October, Q3 January, Q4 March/April.
   if (m >= 6 && m <= 8) return "Q1";
   if (m >= 9 && m <= 11) return "Q2";
-  if (m >= 0 && m <= 2) return "Q3";
-  return "Q4";
+  if (m >= 0 && m <= 1) return "Q3";
+  if (m >= 2 && m <= 3) return "Q4";
+  return null;
 }

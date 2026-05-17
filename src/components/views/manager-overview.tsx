@@ -14,27 +14,30 @@ import {
   AlertCircle,
   TrendingUp,
 } from "lucide-react";
-import { currentQuarter } from "@/lib/scoring";
+import { currentQuarterForCycle } from "@/lib/scoring";
 
 export async function ManagerOverview({ userId }: { userId: string }) {
   const me = await prisma.user.findUnique({ where: { id: userId } });
+  const cycle = await prisma.cycle.findFirst({ where: { isActive: true } });
   const team = await prisma.user.findMany({
     where: { managerId: userId },
     include: {
-      goals: { include: { checkIns: true } },
+      goals: { where: { cycleId: cycle?.id }, include: { checkIns: true } },
     },
   });
 
   const pendingApprovals = team.flatMap((t) => t.goals.filter((g) => g.status === "SUBMITTED")).length;
   const totalGoals = team.flatMap((t) => t.goals).length;
   const approvedGoals = team.flatMap((t) => t.goals.filter((g) => g.status === "APPROVED" || g.status === "LOCKED")).length;
-  const q = currentQuarter()!;
+  const q = currentQuarterForCycle(cycle);
 
-  const teamCheckinComplete = team.filter((t) => {
-    const approved = t.goals.filter((g) => g.status === "APPROVED" || g.status === "LOCKED");
-    if (approved.length === 0) return false;
-    return approved.every((g) => g.checkIns.some((c) => c.quarter === q));
-  }).length;
+  const teamCheckinComplete = q
+    ? team.filter((t) => {
+        const approved = t.goals.filter((g) => g.status === "APPROVED" || g.status === "LOCKED");
+        if (approved.length === 0) return false;
+        return approved.every((g) => g.checkIns.some((c) => c.quarter === q));
+      }).length
+    : 0;
 
   return (
     <div className="space-y-6 animate-fade-up">
@@ -42,7 +45,7 @@ export async function ManagerOverview({ userId }: { userId: string }) {
         <div>
           <div className="chip mb-3">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            Current quarter · {q}
+            {q ? `Current quarter · ${q}` : "Quarterly check-ins not open"}
           </div>
           <h1 className="display-heading text-4xl font-bold text-slate-900">
             Hello, {me?.name.split(" ")[0]}.
@@ -77,9 +80,10 @@ export async function ManagerOverview({ userId }: { userId: string }) {
         />
         <StatCard
           icon={TrendingUp}
-          label={`${q} Check-ins Done`}
-          value={`${teamCheckinComplete}/${team.length}`}
-          tone={teamCheckinComplete === team.length ? "emerald" : "amber"}
+          label={q ? `${q} Check-ins Done` : "Check-ins Open"}
+          value={q ? `${teamCheckinComplete}/${team.length}` : "Not open"}
+          hint={q ? undefined : "Q1 opens from the cycle date"}
+          tone={q && teamCheckinComplete === team.length ? "emerald" : "amber"}
         />
       </div>
 
@@ -95,7 +99,7 @@ export async function ManagerOverview({ userId }: { userId: string }) {
             const submitted = t.goals.filter((g) => g.status === "SUBMITTED").length;
             const approved = t.goals.filter((g) => g.status === "APPROVED" || g.status === "LOCKED").length;
             const draftCount = t.goals.filter((g) => g.status === "DRAFT").length;
-            const qCheckIn = t.goals.filter((g) => g.checkIns.some((c) => c.quarter === q)).length;
+            const qCheckIn = q ? t.goals.filter((g) => g.checkIns.some((c) => c.quarter === q)).length : 0;
             return (
               <div key={t.id} className="py-4 flex flex-col md:flex-row md:items-center gap-4">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -120,7 +124,7 @@ export async function ManagerOverview({ userId }: { userId: string }) {
                 </div>
                 <div className="md:w-48">
                   <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-1">
-                    <span>{q} check-in</span>
+                    <span>{q ? `${q} check-in` : "Check-ins"}</span>
                     <span>{qCheckIn}/{approved}</span>
                   </div>
                   <Progress value={approved > 0 ? (qCheckIn / approved) * 100 : 0} />

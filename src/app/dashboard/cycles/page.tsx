@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
 import { CycleEditor } from "@/components/cycle-editor";
-import { RefreshCcw, Calendar } from "lucide-react";
+import { Calendar } from "lucide-react";
 
 export default async function CyclesPage() {
   await requireRole("ADMIN");

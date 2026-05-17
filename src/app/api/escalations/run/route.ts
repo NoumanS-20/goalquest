@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { withRole } from "@/lib/api";
-import { currentQuarter } from "@/lib/scoring";
+import { currentQuarterForCycle } from "@/lib/scoring";
 import { headers } from "next/headers";
 
 /**
@@ -91,7 +91,7 @@ async function runEscalations(): Promise<Response> {
   }
 
   // RULE 3: Quarterly check-in not done within window
-  const q = currentQuarter();
+  const q = currentQuarterForCycle(cycle);
   if (q) {
     const approvedGoals = await prisma.goal.findMany({
       where: { status: { in: ["APPROVED", "LOCKED"] }, cycleId: cycle.id },

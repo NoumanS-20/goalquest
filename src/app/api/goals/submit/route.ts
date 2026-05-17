@@ -7,6 +7,12 @@ import { logAudit } from "@/lib/audit";
 export const POST = withAuth(async ({ user }) => {
   const cycle = await prisma.cycle.findFirst({ where: { isActive: true } });
   if (!cycle) return NextResponse.json({ error: "No active cycle" }, { status: 400 });
+  if (new Date() < cycle.goalSetOpen) {
+    return NextResponse.json(
+      { error: `Goal setting opens on ${cycle.goalSetOpen.toLocaleDateString("en-IN")}.` },
+      { status: 400 },
+    );
+  }
 
   const goals = await prisma.goal.findMany({
     where: { ownerId: user.id, cycleId: cycle.id },

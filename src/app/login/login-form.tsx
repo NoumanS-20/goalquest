@@ -76,7 +76,7 @@ export function LoginForm({ accounts }: { accounts: Account[] }) {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="pl-10 h-11 rounded-xl border-slate-200 bg-white shadow-soft focus-visible:border-slate-300 focus-visible:ring-slate-200"
+              className="pl-10 h-11 rounded-lg border-slate-200 bg-white shadow-soft focus-visible:border-slate-300 focus-visible:ring-slate-200"
               autoComplete="email"
               required
             />
@@ -91,7 +91,7 @@ export function LoginForm({ accounts }: { accounts: Account[] }) {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="pl-10 h-11 rounded-xl border-slate-200 bg-white shadow-soft focus-visible:border-slate-300 focus-visible:ring-slate-200"
+              className="pl-10 h-11 rounded-lg border-slate-200 bg-white shadow-soft focus-visible:border-slate-300 focus-visible:ring-slate-200"
               autoComplete="current-password"
               required
             />
@@ -120,7 +120,7 @@ export function LoginForm({ accounts }: { accounts: Account[] }) {
             key={a.id}
             onClick={() => !loading && quickLogin(a.email)}
             disabled={loading}
-            className="group w-full text-left rounded-xl bg-white border border-slate-200/80 p-3 shadow-soft hover:shadow-soft-lg hover:-translate-y-0.5 hover:border-slate-300 transition-all flex items-center justify-between gap-3 disabled:opacity-50 disabled:pointer-events-none"
+            className="group w-full text-left rounded-lg bg-white border border-slate-200/80 p-3 shadow-soft hover:shadow-soft-lg hover:-translate-y-0.5 hover:border-slate-300 transition-all flex items-center justify-between gap-3 disabled:opacity-50 disabled:pointer-events-none"
           >
             <div className="flex items-center gap-3 min-w-0">
               <Avatar className="ring-2 ring-white shadow-soft">
@@ -135,7 +135,7 @@ export function LoginForm({ accounts }: { accounts: Account[] }) {
                 </div>
               </div>
             </div>
-            <span className={`text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full capitalize shrink-0 ${roleChip(a.role)}`}>
+            <span className={`text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-md capitalize shrink-0 ${roleChip(a.role)}`}>
               {a.role.toLowerCase()}
             </span>
           </button>

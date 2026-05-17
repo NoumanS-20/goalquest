@@ -1,5 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { computeScore, currentQuarter, QUARTERS } from "./scoring";
+import {
+  computeScore,
+  currentQuarter,
+  currentQuarterForCycle,
+  isQuarterOpen,
+  openedQuarters,
+  QUARTERS,
+} from "./scoring";
 
 describe("computeScore — BRD formulas", () => {
   describe("ZERO (zero = success)", () => {
@@ -80,16 +87,42 @@ describe("currentQuarter — BRD windows", () => {
     expect(currentQuarter(new Date("2026-10-01"))).toBe("Q2");
     expect(currentQuarter(new Date("2026-12-31"))).toBe("Q2");
   });
-  it("returns Q3 in Jan, Feb, Mar", () => {
+  it("returns Q3 in Jan and Feb", () => {
     expect(currentQuarter(new Date("2027-01-15"))).toBe("Q3");
-    expect(currentQuarter(new Date("2027-03-15"))).toBe("Q3");
+    expect(currentQuarter(new Date("2027-02-28"))).toBe("Q3");
   });
-  it("returns Q4 for everything else (Apr-Jun)", () => {
+  it("returns Q4 in Mar and Apr", () => {
+    expect(currentQuarter(new Date("2027-03-15"))).toBe("Q4");
     expect(currentQuarter(new Date("2027-04-01"))).toBe("Q4");
-    expect(currentQuarter(new Date("2027-05-15"))).toBe("Q4");
-    expect(currentQuarter(new Date("2027-06-30"))).toBe("Q4");
+  });
+  it("returns null during goal-setting months before Q1", () => {
+    expect(currentQuarter(new Date("2026-05-15"))).toBeNull();
+    expect(currentQuarter(new Date("2026-06-30"))).toBeNull();
   });
   it("exports QUARTERS in canonical order", () => {
     expect(QUARTERS).toEqual(["Q1", "Q2", "Q3", "Q4"]);
+  });
+});
+
+describe("cycle-aware check-in windows", () => {
+  const cycle = {
+    q1Open: new Date("2026-07-01"),
+    q2Open: new Date("2026-10-01"),
+    q3Open: new Date("2027-01-01"),
+    q4Open: new Date("2027-03-15"),
+    endDate: new Date("2027-04-30"),
+  };
+
+  it("keeps all quarterly check-ins closed during goal setting", () => {
+    expect(openedQuarters(cycle, new Date("2026-05-17"))).toEqual([]);
+    expect(currentQuarterForCycle(cycle, new Date("2026-05-17"))).toBeNull();
+    expect(isQuarterOpen(cycle, "Q1", new Date("2026-05-17"))).toBe(false);
+  });
+
+  it("returns the latest opened quarter from configured dates", () => {
+    expect(currentQuarterForCycle(cycle, new Date("2026-07-01"))).toBe("Q1");
+    expect(currentQuarterForCycle(cycle, new Date("2026-12-01"))).toBe("Q2");
+    expect(currentQuarterForCycle(cycle, new Date("2027-03-01"))).toBe("Q3");
+    expect(currentQuarterForCycle(cycle, new Date("2027-03-15"))).toBe("Q4");
   });
 });

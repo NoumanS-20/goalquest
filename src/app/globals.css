@@ -20,7 +20,7 @@
   --warning: 38 92% 50%;
   --brand: 232 80% 60%;
   --brand-2: 270 70% 60%;
-  --radius: 0.75rem;
+  --radius: 0.5rem;
 }
 
 .dark {
@@ -136,13 +136,9 @@ body {
 
 /* === Apple-style landing utilities === */
 
-/* Soft canvas background — pure white with subtle warmth */
+/* Quiet application canvas */
 .bg-canvas {
-  background:
-    radial-gradient(1200px 600px at 50% -10%, hsl(220 60% 97%) 0%, transparent 60%),
-    radial-gradient(800px 500px at 10% 30%, hsl(280 60% 98%) 0%, transparent 60%),
-    radial-gradient(900px 500px at 90% 20%, hsl(200 70% 98%) 0%, transparent 60%),
-    #ffffff;
+  background: #f8fafc;
 }
 
 /* Crisp dotted paper texture (very subtle) */
@@ -200,8 +196,8 @@ body {
 /* Apple-style display heading */
 .display-heading {
   font-feature-settings: "ss01", "cv11";
-  letter-spacing: -0.04em;
-  line-height: 0.95;
+  letter-spacing: 0;
+  line-height: 1.05;
 }
 
 /* Tag chip */
@@ -210,7 +206,7 @@ body {
   align-items: center;
   gap: 6px;
   padding: 6px 12px;
-  border-radius: 999px;
+  border-radius: 8px;
   background: rgba(15, 23, 42, 0.04);
   border: 1px solid rgba(15, 23, 42, 0.06);
   font-size: 12px;

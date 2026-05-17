@@ -2,7 +2,6 @@ import { prisma } from "@/lib/db";
 import { requireRole } from "@/lib/session";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Settings, Lock, FileSpreadsheet, RefreshCcw } from "lucide-react";
 import { UnlockGoalButton } from "@/components/unlock-goal-button";

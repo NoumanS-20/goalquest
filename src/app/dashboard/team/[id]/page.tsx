@@ -5,21 +5,22 @@ import { notFound, redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { initials } from "@/lib/utils";
 import { ArrowLeft } from "lucide-react";
-import { ApproveBox } from "@/components/approve-box";
 import { CommentBox } from "@/components/comment-box";
-import { currentQuarter, QUARTERS, UOM_SHORT } from "@/lib/scoring";
+import { ManagerGoalReview } from "@/components/manager-goal-review";
+import { currentQuarterForCycle, QUARTERS, UOM_SHORT } from "@/lib/scoring";
 
 export default async function TeamMemberPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await requireUser();
   const { id } = await params;
+  const cycle = await prisma.cycle.findFirst({ where: { isActive: true } });
   const member = await prisma.user.findUnique({
     where: { id },
     include: {
       goals: {
+        where: { cycleId: cycle?.id },
         include: { thrustArea: true, checkIns: true, comments: { include: { author: true }, orderBy: { createdAt: "desc" } } },
         orderBy: { createdAt: "asc" },
       },
@@ -29,7 +30,7 @@ export default async function TeamMemberPage({ params }: { params: Promise<{ id:
   if (member.managerId !== user.id && user.role !== "ADMIN") redirect("/dashboard/team");
 
   const totalWeight = member.goals.reduce((s, g) => s + g.weightage, 0);
-  const q = currentQuarter()!;
+  const q = currentQuarterForCycle(cycle);
 
   return (
     <div className="space-y-6 animate-fade-up">
@@ -122,11 +123,25 @@ export default async function TeamMemberPage({ params }: { params: Promise<{ id:
 
                   {/* Approve / return for SUBMITTED */}
                   {g.status === "SUBMITTED" && (
-                    <ApproveBox goalId={g.id} />
+                    <ManagerGoalReview
+                      goal={{
+                        id: g.id,
+                        uomType: g.uomType,
+                        target: g.target,
+                        deadline: g.deadline?.toISOString() ?? null,
+                        weightage: g.weightage,
+                      }}
+                    />
                   )}
 
                   {/* Comments */}
-                  <CommentBox goalId={g.id} quarter={q} existing={g.comments} />
+                  {q ? (
+                    <CommentBox goalId={g.id} quarter={q} existing={g.comments} />
+                  ) : (
+                    <div className="border-t border-border pt-3 text-xs text-muted-foreground">
+                      Check-in comments open with the Q1 achievement window.
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             );

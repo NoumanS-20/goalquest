@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { initials } from "@/lib/utils";
 import { FileSpreadsheet, Download } from "lucide-react";
-import { QUARTERS, currentQuarter } from "@/lib/scoring";
+import { QUARTERS, currentQuarterForCycle } from "@/lib/scoring";
 
 export default async function ReportsPage() {
   await requireRole("ADMIN");
@@ -20,7 +20,7 @@ export default async function ReportsPage() {
     orderBy: { name: "asc" },
   });
 
-  const q = currentQuarter()!;
+  const q = currentQuarterForCycle(cycle);
 
   return (
     <div className="space-y-6 animate-fade-up">

@@ -11,7 +11,7 @@ import {
   Building2,
   Activity,
 } from "lucide-react";
-import { currentQuarter } from "@/lib/scoring";
+import { currentQuarterForCycle } from "@/lib/scoring";
 
 export async function AdminOverview() {
   const [
@@ -46,7 +46,7 @@ export async function AdminOverview() {
   ]);
 
   const thrustAreas = await prisma.thrustArea.findMany();
-  const q = currentQuarter()!;
+  const q = currentQuarterForCycle(cycle);
 
   return (
     <div className="space-y-6 animate-fade-up">
@@ -54,7 +54,7 @@ export async function AdminOverview() {
         <div>
           <div className="chip mb-3">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            {cycle?.name ?? "No active cycle"} · {q}
+            {cycle?.name ?? "No active cycle"} · {q ?? "Goal setting"}
           </div>
           <h1 className="display-heading text-4xl font-bold text-slate-900">
             Admin overview.

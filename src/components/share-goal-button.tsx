@@ -93,7 +93,13 @@ export function ShareGoalButton({ team }: { team: { id: string; name: string }[]
             </div>
             <div className="space-y-1">
               <Label>Default weight</Label>
-              <Input type="number" value={weightage} onChange={(e) => setWeightage(e.target.value)} />
+              <Input
+                type="number"
+                min={10}
+                max={100}
+                value={weightage}
+                onChange={(e) => setWeightage(e.target.value)}
+              />
             </div>
           </div>
           <div>

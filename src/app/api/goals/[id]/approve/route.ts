@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { withRole, readJson } from "@/lib/api";
 import { logAudit } from "@/lib/audit";
+import { checkSubmitReady } from "@/lib/validation";
 
 export const POST = withRole<{ id: string }>(
   ["MANAGER", "ADMIN"],
@@ -21,8 +22,25 @@ export const POST = withRole<{ id: string }>(
     if (user.role === "MANAGER" && goal.owner.managerId !== user.id) {
       return NextResponse.json({ error: "Not your direct report" }, { status: 403 });
     }
+    if (goal.status !== "SUBMITTED") {
+      return NextResponse.json(
+        { error: "Only submitted goals can be approved or returned." },
+        { status: 400 },
+      );
+    }
 
     if (action === "approve") {
+      const sheet = await prisma.goal.findMany({
+        where: { ownerId: goal.ownerId, cycleId: goal.cycleId },
+      });
+      const check = checkSubmitReady(sheet);
+      if (!check.ok) {
+        return NextResponse.json(
+          { error: `Cannot approve until the goal sheet is valid: ${check.reason}` },
+          { status: 400 },
+        );
+      }
+
       await prisma.goal.update({
         where: { id },
         data: {

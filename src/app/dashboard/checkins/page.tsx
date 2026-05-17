@@ -1,10 +1,11 @@
 import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/session";
-import { currentQuarter, QUARTERS } from "@/lib/scoring";
+import { currentQuarterForCycle, openedQuarters, quarterOpenDate } from "@/lib/scoring";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CheckinForm } from "@/components/checkin-form";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { formatDate } from "@/lib/utils";
 
 export default async function CheckinsPage() {
   const user = await requireUser();
@@ -19,7 +20,10 @@ export default async function CheckinsPage() {
     orderBy: { createdAt: "asc" },
   });
 
-  const q = currentQuarter()!;
+  const q = currentQuarterForCycle(cycle);
+  const availableQuarters = openedQuarters(cycle);
+  const defaultQuarter = q ?? "Q1";
+  const firstCheckInOpen = cycle ? quarterOpenDate(cycle, "Q1") : null;
 
   return (
     <div className="space-y-6 animate-fade-up">
@@ -27,7 +31,7 @@ export default async function CheckinsPage() {
         <h1 className="display-heading text-4xl font-bold text-slate-900">Quarterly Check-ins</h1>
         <p className="text-muted-foreground mt-1">
           Log actual achievement against planned targets. Current quarter:{" "}
-          <Badge variant="brand">{q}</Badge>
+          <Badge variant={q ? "brand" : "secondary"}>{q ?? "Not open"}</Badge>
         </p>
       </div>
 
@@ -40,10 +44,20 @@ export default async function CheckinsPage() {
             </p>
           </CardContent>
         </Card>
+      ) : availableQuarters.length === 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Quarterly capture is not open yet</CardTitle>
+            <CardDescription>
+              Approved goals are locked and ready. Q1 achievement capture opens{" "}
+              {firstCheckInOpen ? formatDate(firstCheckInOpen) : "when the active cycle is configured"}.
+            </CardDescription>
+          </CardHeader>
+        </Card>
       ) : (
-        <Tabs defaultValue={q}>
+        <Tabs defaultValue={defaultQuarter}>
           <TabsList>
-            {QUARTERS.map((qu) => (
+            {availableQuarters.map((qu) => (
               <TabsTrigger key={qu} value={qu}>
                 {qu}
                 {qu === q && <span className="ml-1.5 h-1.5 w-1.5 rounded-full bg-brand-gradient" />}
@@ -51,7 +65,7 @@ export default async function CheckinsPage() {
             ))}
           </TabsList>
 
-          {QUARTERS.map((qu) => (
+          {availableQuarters.map((qu) => (
             <TabsContent key={qu} value={qu} className="space-y-3">
               <Card>
                 <CardHeader>

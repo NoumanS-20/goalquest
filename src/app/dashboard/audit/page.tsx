@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { initials } from "@/lib/utils";
-import { History, Activity } from "lucide-react";
+import { History } from "lucide-react";
 
 export default async function AuditPage() {
   const user = await requireUser();

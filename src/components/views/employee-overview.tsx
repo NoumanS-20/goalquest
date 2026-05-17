@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { currentQuarter } from "@/lib/scoring";
+import { currentQuarterForCycle } from "@/lib/scoring";
 import { formatDate } from "@/lib/utils";
 import {
   ArrowRight,
@@ -18,8 +18,9 @@ import {
 
 export async function EmployeeOverview({ userId }: { userId: string }) {
   const me = await prisma.user.findUnique({ where: { id: userId } });
+  const cycle = await prisma.cycle.findFirst({ where: { isActive: true } });
   const goals = await prisma.goal.findMany({
-    where: { ownerId: userId },
+    where: { ownerId: userId, cycleId: cycle?.id },
     include: {
       thrustArea: true,
       checkIns: true,
@@ -43,7 +44,7 @@ export async function EmployeeOverview({ userId }: { userId: string }) {
   }
   const overallScore = weightUsed > 0 ? (weightedScore / weightUsed) * 100 : 0;
 
-  const q = currentQuarter()!;
+  const q = currentQuarterForCycle(cycle);
 
   return (
     <div className="space-y-6 animate-fade-up">
@@ -51,7 +52,7 @@ export async function EmployeeOverview({ userId }: { userId: string }) {
         <div>
           <div className="chip mb-3">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            Current quarter · {q}
+            {q ? `Current quarter · ${q}` : "Quarterly check-ins not open"}
           </div>
           <h1 className="display-heading text-4xl font-bold text-slate-900">
             Hello, {me?.name.split(" ")[0]}.
