@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { requireRole } from "@/lib/session";
+import { withRole } from "@/lib/api";
 import { QUARTERS } from "@/lib/scoring";
 
 function esc(v: unknown): string {
@@ -11,11 +11,17 @@ function esc(v: unknown): string {
   return s;
 }
 
-export async function GET() {
-  await requireRole("ADMIN");
+export const GET = withRole(["ADMIN", "MANAGER"], async ({ user }) => {
   const cycle = await prisma.cycle.findFirst({ where: { isActive: true } });
+
+  // Managers see only their direct reports; admins see all
+  const ownerFilter =
+    user.role === "MANAGER"
+      ? { owner: { managerId: user.id } }
+      : {};
+
   const goals = await prisma.goal.findMany({
-    where: { cycleId: cycle?.id },
+    where: { cycleId: cycle?.id, ...ownerFilter },
     include: {
       owner: { include: { manager: true } },
       thrustArea: true,
@@ -46,7 +52,9 @@ export async function GET() {
       const actual = c?.actualValue ?? (c?.actualDate ? c.actualDate.toISOString().slice(0, 10) : "");
       return [actual, c ? Math.round(c.score) : ""];
     });
-    const latest = [...g.checkIns].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
+    const latest = [...g.checkIns].sort(
+      (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+    )[0];
 
     return [
       g.owner.name,
@@ -71,6 +79,7 @@ export async function GET() {
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
       "Content-Disposition": `attachment; filename="achievement-${new Date().toISOString().slice(0, 10)}.csv"`,
+      "Cache-Control": "no-store",
     },
   });
-}
+});

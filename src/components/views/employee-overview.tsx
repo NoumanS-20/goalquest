@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { computeScore, currentQuarter } from "@/lib/scoring";
+import { currentQuarter } from "@/lib/scoring";
 import { formatDate } from "@/lib/utils";
 import {
   ArrowRight,

@@ -1,10 +1,18 @@
 import { cookies } from "next/headers";
 import { prisma } from "./db";
-import { randomBytes } from "crypto";
+import { randomBytes, timingSafeEqual } from "crypto";
 import bcrypt from "bcryptjs";
+import * as argon2 from "@node-rs/argon2";
 
 const SESSION_COOKIE = "gq_session";
 const SESSION_DAYS = 30;
+
+// OWASP-recommended argon2id parameters (2024)
+const ARGON_OPTS = {
+  memoryCost: 19456, // 19 MiB
+  timeCost: 2,
+  parallelism: 1,
+} as const;
 
 export async function createSession(userId: string) {
   const token = randomBytes(32).toString("hex");
@@ -62,12 +70,46 @@ export async function requireRole(roles: string | string[]) {
   return user;
 }
 
-export async function verifyPassword(plain: string, hash: string) {
-  return bcrypt.compare(plain, hash);
+/**
+ * Hash a password with argon2id (OWASP 2024 params).
+ * New hashes always use argon2id. bcrypt is only kept around for verification
+ * of legacy hashes already in the DB (see verifyPassword).
+ */
+export async function hashPassword(plain: string): Promise<string> {
+  return argon2.hash(plain, ARGON_OPTS);
 }
 
-export async function hashPassword(plain: string) {
-  return bcrypt.hash(plain, 10);
+/**
+ * Verify a password against either argon2id or legacy bcrypt hashes.
+ * Returns `{ valid, needsRehash }` so callers can transparently upgrade
+ * old bcrypt users to argon2id on their next successful login.
+ */
+export async function verifyPassword(
+  plain: string,
+  hash: string,
+): Promise<{ valid: boolean; needsRehash: boolean }> {
+  // bcrypt hashes start with $2a$, $2b$, or $2y$
+  if (hash.startsWith("$2")) {
+    const valid = await bcrypt.compare(plain, hash);
+    return { valid, needsRehash: valid };
+  }
+  // argon2 hashes start with $argon2
+  if (hash.startsWith("$argon2")) {
+    const valid = await argon2.verify(hash, plain);
+    return { valid, needsRehash: false };
+  }
+  return { valid: false, needsRehash: false };
+}
+
+/**
+ * Constant-time string compare for tokens/secrets.
+ * Use when comparing CSRF tokens, cron secrets, etc.
+ */
+export function safeEqual(a: string, b: string): boolean {
+  const ab = Buffer.from(a);
+  const bb = Buffer.from(b);
+  if (ab.length !== bb.length) return false;
+  return timingSafeEqual(ab, bb);
 }
 
 export async function switchToUser(userId: string) {

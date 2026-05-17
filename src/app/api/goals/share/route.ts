@@ -1,14 +1,24 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireUser } from "@/lib/session";
+import { withRole, readJson } from "@/lib/api";
 import { logAudit } from "@/lib/audit";
 
-export async function POST(req: Request) {
-  const user = await requireUser();
-  if (!["MANAGER", "ADMIN"].includes(user.role)) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+type ShareBody = {
+  title?: string;
+  description?: string;
+  target?: number;
+  uomLabel?: string;
+  weightage?: number;
+  recipientIds?: string[];
+};
+
+export const POST = withRole(["MANAGER", "ADMIN"], async ({ user, req }) => {
+  const body = await readJson<ShareBody>(req);
+  if (!body) {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
-  const { title, description, target, uomLabel, weightage, recipientIds } = await req.json();
+  const { title, description, target, uomLabel, weightage, recipientIds } = body;
+
   if (!title || !Array.isArray(recipientIds) || recipientIds.length === 0) {
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
   }
@@ -16,9 +26,26 @@ export async function POST(req: Request) {
   const cycle = await prisma.cycle.findFirst({ where: { isActive: true } });
   if (!cycle) return NextResponse.json({ error: "No active cycle" }, { status: 400 });
   const defaultThrust = await prisma.thrustArea.findFirst();
-  if (!defaultThrust) return NextResponse.json({ error: "No thrust areas" }, { status: 400 });
+  if (!defaultThrust) {
+    return NextResponse.json({ error: "No thrust areas" }, { status: 400 });
+  }
 
-  // Parent goal owned by the manager
+  // Managers can only share to their direct reports
+  if (user.role === "MANAGER") {
+    const reports = await prisma.user.findMany({
+      where: { managerId: user.id },
+      select: { id: true },
+    });
+    const reportIds = new Set(reports.map((r) => r.id));
+    const invalid = recipientIds.filter((rid) => !reportIds.has(rid));
+    if (invalid.length > 0) {
+      return NextResponse.json(
+        { error: "Can only share to your direct reports" },
+        { status: 403 },
+      );
+    }
+  }
+
   const parent = await prisma.goal.create({
     data: {
       title,
@@ -70,4 +97,4 @@ export async function POST(req: Request) {
   }
 
   return NextResponse.json({ ok: true, count: recipientIds.length });
-}
+});

@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import type { Metadata } from "next";
 import { Button } from "@/components/ui/button";
 import { getCurrentUser } from "@/lib/session";
+import { buildMetadata, buildOrganizationJsonLd, buildFAQJsonLd } from "@/lib/seo";
 import {
   Target,
   Users,
@@ -19,12 +21,52 @@ import {
 import { GoalQuestMark } from "@/components/brand/goalquest-mark";
 import { BrandLogos } from "@/components/brand/brand-logos";
 
+export const metadata: Metadata = buildMetadata({
+  title: "Set goals, track wins, all in one place",
+  description:
+    "GoalQuest is the modern, audit-ready performance portal that replaces spreadsheets. Draft, align, approve, check in, and report — without the sprawl.",
+  path: "/",
+});
+
+const FAQS = [
+  {
+    q: "What is GoalQuest?",
+    a: "GoalQuest is a goal setting and tracking portal that covers the full annual cycle — drafting, alignment, manager approval, quarterly check-ins, analytics, and audit-ready reporting.",
+  },
+  {
+    q: "What goal types does GoalQuest support?",
+    a: "Six units of measurement: numeric (higher or lower is better), percentage (higher or lower is better), timeline (date-based), and zero-based (zero equals success).",
+  },
+  {
+    q: "Is there an audit trail?",
+    a: "Yes — every change to every goal is captured with actor, field, old value, new value, and timestamp. Audit logs are immutable and exportable.",
+  },
+  {
+    q: "Can managers approve goals from one place?",
+    a: "Yes. The Team console lets managers approve, return for rework, or inline-edit submitted goals, with a structured comment thread per check-in.",
+  },
+];
+
 export default async function Home() {
   const user = await getCurrentUser();
   if (user) redirect("/dashboard");
 
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-canvas text-slate-900">
+      {/* JSON-LD structured data for rich results */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(buildOrganizationJsonLd()),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(buildFAQJsonLd(FAQS)),
+        }}
+      />
+
       {/* Top nav — Apple style: minimal, centered links */}
       <header className="sticky top-0 z-40 backdrop-blur-xl bg-white/70 border-b border-slate-200/60">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
